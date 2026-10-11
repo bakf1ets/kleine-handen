@@ -100,7 +100,7 @@ body {
   .cloud.c1 { transform: translateX(30vw); } .cloud.c2 { transform: translateX(70vw); } .cloud.c3 { transform: translateX(15vw); }
 }
 #home > .corner-btn, #home > .tiles, #home > .parent-note { position: relative; z-index: 1; }
-#home > .corner-btn { position: absolute; }
+#home > .corner-btn { position: absolute; z-index: 5; }   /* above the tile area, which spans the whole screen */
 
 /* Home: all tiles on one screen, four to a row (the app is made for landscape).
    The tile size follows whichever runs out first, width or height; the side

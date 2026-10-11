@@ -106,7 +106,7 @@ Twee dingen, altijd allebei:
 1. **Testpagina**: één HTML-bestand met alles inline (CSS, scripts in de volgorde van `index.html`, Matter.js erbij), gepubliceerd als artifact zodat hij het op zijn telefoon opent. Service worker en manifest horen daar niet in.
 2. **Zip** van de projectmap voor GitHub Pages, met `VERSION` in `js/app.js` en `CACHE` in `sw.js` opgehoogd.
 
-Controleer vóór opleveren minstens `node --check` op elk gewijzigd script. Er is een jsdom-rooktest die elk speeltje mount en unmount; die staat niet in de map maar is in twintig regels na te maken (stub `ResizeObserver`, `getScreenCTM`, `createSVGPoint`, canvas-`getContext`, `matchMedia`, `AudioContext = undefined`). Sinds 0.4.2 is ook met Playwright (Chromium in de sandbox) getest: elk speeltje openen, met meerdere vingers tikken, terug; met en zonder reduced motion; viewport liggend 844×390. Let op: rechtop dekt `#rotate` alles af, dus test liggend.
+Controleer vóór opleveren minstens `node --check` op elk gewijzigd script. Er is een jsdom-rooktest die elk speeltje mount en unmount; die staat niet in de map maar is in twintig regels na te maken (stub `ResizeObserver`, `getScreenCTM`, `createSVGPoint`, canvas-`getContext`, `matchMedia`, `AudioContext = undefined`). Sinds 0.4.2 is ook met Playwright (Chromium in de sandbox) getest: elk speeltje openen, met meerdere vingers tikken, terug; met en zonder reduced motion; viewport liggend 844×390. Let op: rechtop dekt `#rotate` alles af, dus test liggend. Test het slotje met echt vasthouden op de knop (muis/vinger op het midden, 2 s), niet via het toetsenbord: in 0.6.0 lag het tegelvlak over de knop en dat zag een toetsenbordtest niet (opgelost in 0.6.2).
 
 ## Illustraties (punt 4): gedaan in 0.4.2–0.5.0
 
