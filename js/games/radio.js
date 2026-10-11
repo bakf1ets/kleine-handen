@@ -1,13 +1,14 @@
 // Radio (1–6 jaar). A wooden radio that plays traditional children's tunes,
 // synthesised live with Web Audio: no recordings, no files, nothing with a
-// rights holder. Tap a station picture to change the song, the big button to
-// start and stop. A bear, a cat and a dog dance along; tap one and it jumps.
+// rights holder. Big arrows change the song, tapping the song picture starts
+// and stops it. A bear, a cat and a dog are stickers on the radio; they dance
+// along and jump when tapped.
 window.KH = window.KH || {};
 KH.games = KH.games || [];
 
 (function () {
   const U = KH.util;
-  const W = 780, H = 400;   // landscape: radio left, dance floor right
+  const W = 780, H = 400;   // landscape
 
   // Note name -> frequency
   const SEMI = { C: -9, 'C#': -8, D: -7, 'D#': -6, E: -5, F: -4, 'F#': -3, G: -2, 'G#': -1, A: 0, 'A#': 1, B: 2 };
@@ -87,121 +88,157 @@ KH.games = KH.games || [];
     const f = el('filter', { id: 'rshadow', x: '-20%', y: '-20%', width: '140%', height: '160%' }, defs);
     el('feDropShadow', { dx: 0, dy: 4, stdDeviation: 3, 'flood-color': '#3C4A3E', 'flood-opacity': 0.25 }, f);
 
-    // ---- Radio cabinet ----
-    // Landscape: the radio on the left, vertically centred.
-    const cab = el('g', { transform: 'translate(0 45)' }, svg);
-    el('rect', { x: 30, y: 40, width: 340, height: 270, rx: 30, fill: '#D9A86C', filter: 'url(#rshadow)' }, cab);
-    el('rect', { x: 50, y: 60, width: 190, height: 150, rx: 18, fill: '#F2D9B0' }, cab);
-    // speaker grille
-    const grille = [];
-    for (let r = 0; r < 5; r++) for (let c = 0; c < 7; c++) {
-      grille.push(el('circle', { cx: 72 + c * 24, cy: 84 + r * 26, r: 6, fill: '#B07E44' }, cab));
-    }
-    // dial window with needle
-    el('rect', { x: 256, y: 60, width: 94, height: 60, rx: 12, fill: '#F7F3EA' }, cab);
-    SONGS.forEach((s, i) => el('rect', { x: 268 + i * 11.5, y: 72, width: 3, height: 12, rx: 1.5, fill: '#B07E44' }, cab));
-    const needle = el('rect', { x: 268, y: 66, width: 4, height: 48, rx: 2, fill: '#D9574C' }, cab);
-    // power button
-    const power = el('g', { transform: 'translate(303 170)' }, cab);
-    el('circle', { r: 34, fill: '#A84A40' }, power);
-    const powerCap = el('circle', { r: 32, cy: -4, fill: '#D9574C' }, power);
-    const powerIcon = el('path', { d: 'M -8 -14 L 12 -4 L -8 6 Z', fill: '#F7F3EA', 'pointer-events': 'none' }, power);
-
-    // station buttons
-    const stationY = 262;
-    const stationBtns = SONGS.map((s, i) => {
-      const x = 62 + i * 46;   // seven buttons that stay inside the cabinet
-      const g = el('g', { transform: `translate(${x} ${stationY})` }, cab);
-      const bg = el('circle', { r: 20, fill: '#F7F3EA', stroke: '#B07E44', 'stroke-width': 3 }, g);
-      const ic = el('g', { transform: 'scale(0.64)', 'pointer-events': 'none' }, g);
-      ic.innerHTML = ICONS[s.icon];
-      g.addEventListener('pointerdown', (e) => { e.preventDefault(); selectStation(i, true); });
-      return { g, bg };
-    });
-
-    // ---- Dancers ----
-    // A bear, a cat and a dog, sitting, in a soft watercolour look. Each is
-    // built from parts that move on their own (legs, ears, head, tail).
-    // Local coordinates: origin at the feet, y up is negative.
+    // ---- Layout (landscape) ----
+    // A wooden radio body fills the stage. In the middle a dark screen shows the
+    // current song as a picture card, the previous and next cards peeking in at
+    // the edges, a little equaliser and a progress bar. Big arrows left and right
+    // change the song; tapping the card starts or stops it. Speakers sit in the
+    // bottom corners. A bear, a cat and a dog are stickers on the body: they
+    // dance to the music and jump when tapped.
     const INK = '#3C4A3E';
     const PINK = '#F0A5A0';
     const kit = U.paintKit(svg);
     const paint = kit.shape;
+    const mix = U.mixHex;
+    const SCR = { x0: 200, y0: 40, x1: 580, y1: 360 };     // the screen
+    const CARD = 150;                                        // card size
+    const CARD_X = 318, CARD_Y = 172;                        // current card centre
 
-    // Landscape: the dance floor sits to the right of the radio.
-    const floorG = el('g', { transform: 'translate(390 -250)' }, svg);
-    el('rect', { x: 30, y: 350, width: 340, height: 260, rx: 30, fill: '#F2D9B0', 'fill-opacity': 0.55 }, floorG);
-    drawJungle();
-    // Opaque floor so the leaf stems disappear behind it. Same colour as the old
-    // see-through strip (#D9A86C at 60% over the panel), worked out once.
-    el('rect', { x: 30, y: 560, width: 340, height: 50, rx: 24, fill: '#E2C092' }, floorG);
+    // Body and screen frame
+    el('rect', { x: 10, y: 10, width: 760, height: 380, rx: 38, fill: '#D9A86C', filter: 'url(#rshadow)' }, svg);
+    if (kit.grain) el('rect', { x: 10, y: 10, width: 760, height: 380, rx: 38, fill: kit.grain, opacity: 0.5, class: 'grain', 'pointer-events': 'none' }, svg);
+    el('rect', { x: SCR.x0 - 16, y: SCR.y0 - 16, width: SCR.x1 - SCR.x0 + 32, height: SCR.y1 - SCR.y0 + 32, rx: 32, fill: '#B07E44' }, svg);
+    el('rect', { x: SCR.x0, y: SCR.y0, width: SCR.x1 - SCR.x0, height: SCR.y1 - SCR.y0, rx: 22, fill: INK }, svg);
+    const scrClip = el('clipPath', { id: 'radio-screen' }, defs);
+    el('rect', { x: SCR.x0, y: SCR.y0, width: SCR.x1 - SCR.x0, height: SCR.y1 - SCR.y0, rx: 22 }, scrClip);
+    const screen = el('g', { 'clip-path': 'url(#radio-screen)' }, svg);
 
-    // Leaves behind the dancers, growing up from the floor. They stay still:
-    // calm to look at, and nothing to repaint every frame.
-    function drawJungle() {
-      const deep = U.mixHex('#6FA36B', INK, 0.35);
-      const mid = '#6FA36B';
-      const fresh = U.mixHex('#6FA36B', '#E8B83A', 0.3);
-      const defs = svg.querySelector('defs');
-      const clip = el('clipPath', { id: 'radio-floor-clip' }, defs);
-      el('rect', { x: 30, y: 350, width: 340, height: 260, rx: 30 }, clip);
-      const jungle = el('g', { 'clip-path': 'url(#radio-floor-clip)', 'pointer-events': 'none' }, floorG);
-
-      // A lens-shaped hole between two points (cut out with evenodd).
-      function lens(x1, y1, x2, y2, bulge) {
-        const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
-        const len = Math.hypot(x2 - x1, y2 - y1);
-        const nx = -(y2 - y1) / len * bulge, ny = (x2 - x1) / len * bulge;
-        return `M ${x1} ${y1} Q ${mx + nx} ${my + ny} ${x2} ${y2} Q ${mx - nx} ${my - ny} ${x1} ${y1} Z `;
+    // ---- Song cards ----
+    // One picture per song, drawn here in the app's own style.
+    const light = (c, k) => mix(c, '#ffffff', k);
+    function starPath(r1, r2) {
+      let d = '';
+      for (let i = 0; i < 10; i++) {
+        const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? r2 : r1;
+        d += `${i ? 'L' : 'M'} ${(Math.cos(a) * r).toFixed(1)} ${(Math.sin(a) * r).toFixed(1)} `;
       }
-      // Monstera leaf pointing up from (0,0), with oval holes either side of the midrib.
-      function monstera(x, y, angle, size, color) {
-        const g = el('g', { transform: `translate(${x} ${y}) rotate(${angle}) scale(${size})` }, jungle);
-        el('path', { d: 'M 0 6 L 0 -12', stroke: deep, 'stroke-width': 4, 'stroke-linecap': 'round' }, g);
-        let d = 'M 0 -6 C -46 -14, -54 -70, -12 -98 Q 0 -104 10 -98 C 52 -72, 46 -14, 0 -6 Z ';
-        [[-1, -30, 22], [-1, -58, 20], [-1, -80, 12], [1, -34, 22], [1, -60, 19], [1, -82, 11]].forEach(([s, yy, w]) => {
-          d += lens(s * 10, yy, s * (10 + w), yy - 10, 4.5);
-        });
-        paint(g, 'path', { d, 'fill-rule': 'evenodd' }, color, 0.2);
-        el('path', { d: 'M 0 -8 Q 3 -50 0 -96', fill: 'none', stroke: U.mixHex(color, '#ffffff', 0.35), 'stroke-width': 2, 'stroke-linecap': 'round', 'stroke-opacity': 0.7 }, g);
-      }
-      // Fern: a curved stem with pairs of narrow leaflets getting smaller to the tip.
-      function fern(x, y, angle, height, color) {
-        const g = el('g', { transform: `translate(${x} ${y}) rotate(${angle})` }, jungle);
-        const bend = height * 0.12;
-        el('path', { d: `M 0 0 Q ${bend} ${-height * 0.5} 0 ${-height}`, fill: 'none', stroke: deep, 'stroke-width': 2, 'stroke-linecap': 'round' }, g);
-        const n = 9;
-        for (let i = 1; i <= n; i++) {
-          const t = i / (n + 1);
-          const px = 2 * (1 - t) * t * bend, py = -height * t;
-          const len = 26 * (1 - t * 0.7);
-          [-1, 1].forEach((s) => paint(g, 'ellipse', {
-            cx: px + s * len / 2, cy: py - 2, rx: len / 2, ry: 3.6,
-            transform: `rotate(${s * -28} ${px} ${py})`
-          }, color, 0.15));
-        }
-      }
-      // Branch: a thin stem with a few round leaves, like the light green sprigs.
-      function sprig(x, y, angle, height, color) {
-        const g = el('g', { transform: `translate(${x} ${y}) rotate(${angle})` }, jungle);
-        el('path', { d: `M 0 0 L 0 ${-height}`, stroke: deep, 'stroke-width': 1.8, 'stroke-linecap': 'round' }, g);
-        [0.35, 0.55, 0.75].forEach((t, i) => {
-          const s = i % 2 ? 1 : -1;
-          paint(g, 'ellipse', { cx: s * 9, cy: -height * t, rx: 9, ry: 4.5, transform: `rotate(${s * -35} 0 ${-height * t})` }, color, 0.1);
-        });
-        paint(g, 'ellipse', { cx: 0, cy: -height - 7, rx: 4.5, ry: 9 }, color, 0.1);
-      }
-
-      // back layer
-      // tall ferns in the gaps between the animals
-      fern(154, 566, -8, 175, deep);
-      fern(248, 566, 9, 165, deep);
-      sprig(62, 566, -6, 150, fresh);
-      sprig(340, 566, 8, 140, fresh);
-      // corner monsteras, leaning in from the sides
-      monstera(64, 584, -18, 1.15, mid);
-      monstera(338, 584, 20, 1.05, deep);
+      return d + 'Z';
     }
+    const face = (x, y, s) => `<circle cx="${x - 7 * s}" cy="${y}" r="${2.6 * s}" fill="${INK}"/><circle cx="${x + 7 * s}" cy="${y}" r="${2.6 * s}" fill="${INK}"/>` +
+      `<path d="M ${x - 5 * s} ${y + 6 * s} Q ${x} ${y + 11 * s} ${x + 5 * s} ${y + 6 * s}" fill="none" stroke="${INK}" stroke-width="${2.2 * s}" stroke-linecap="round"/>` +
+      `<ellipse cx="${x - 12 * s}" cy="${y + 5 * s}" rx="${3.5 * s}" ry="${2.2 * s}" fill="${PINK}" opacity=".75"/><ellipse cx="${x + 12 * s}" cy="${y + 5 * s}" rx="${3.5 * s}" ry="${2.2 * s}" fill="${PINK}" opacity=".75"/>`;
+    const ART = {
+      // Kortjakje: a smiling star in the night sky
+      bed: () => `<rect x="-75" y="-75" width="150" height="150" fill="${mix('#4A7BC9', INK, 0.35)}"/>` +
+        [[-48, -48, 3], [44, -52, 2.5], [52, 30, 2], [-52, 40, 2.2], [-20, -60, 1.6], [30, 58, 1.8]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#F7F3EA"/>`).join('') +
+        `<path d="M 50 -30 a 16 16 0 1 0 6 26 a 12 12 0 1 1 -6 -26 Z" fill="${light('#E8B83A', 0.35)}"/>` +
+        `<path d="${starPath(46, 21)}" fill="#E8B83A" stroke="#E8B83A" stroke-width="10" stroke-linejoin="round" transform="translate(-6 8)"/>` + face(-6, 8, 1.1),
+      // Vader Jacob: two bells ringing
+      bell: () => `<rect x="-75" y="-75" width="150" height="150" fill="${light('#6FA36B', 0.55)}"/>` +
+        `<g transform="translate(-22 4) rotate(-14) scale(2.2)">${ICONS.bell}</g><g transform="translate(34 22) rotate(12) scale(1.5)">${ICONS.bell}</g>` +
+        `<path d="M -58 -40 l -8 -6 M -60 -26 l -10 0 M 58 -10 l 8 -6 M 60 4 l 10 0" stroke="#C9961E" stroke-width="4" stroke-linecap="round"/>`,
+      // Boerderij: a cow on a green hill
+      cow: () => `<rect x="-75" y="-75" width="150" height="150" fill="${light('#4A7BC9', 0.7)}"/>` +
+        `<ellipse cx="0" cy="88" rx="120" ry="60" fill="#6FA36B"/>` + `<g transform="translate(0 -2) scale(2.6)">${ICONS.cow}</g>`,
+      // Bootje: a boat on the waves under a sun
+      boat: () => `<rect x="-75" y="-75" width="150" height="150" fill="${light('#4A7BC9', 0.7)}"/>` +
+        `<circle cx="48" cy="-46" r="14" fill="#E8B83A"/>` + `<g transform="translate(-4 4) scale(2.6)">${ICONS.boat}</g>` +
+        `<path d="M -80 52 q 15 -10 30 0 t 30 0 t 30 0 t 30 0 t 30 0 t 30 0 V 80 H -80 Z" fill="#4A7BC9"/>`,
+      // Lammetje: a lamb among flowers
+      sheep: () => `<rect x="-75" y="-75" width="150" height="150" fill="${light('#6FA36B', 0.55)}"/>` +
+        `<ellipse cx="0" cy="92" rx="120" ry="52" fill="#6FA36B"/>` + `<g transform="translate(4 0) scale(2.6)">${ICONS.sheep}</g>` +
+        [[-52, 52, '#D9574C'], [50, 56, '#E8B83A'], [-30, 62, '#8C5BB5']].map(([x, y, c]) => `<circle cx="${x}" cy="${y}" r="6" fill="${c}"/><circle cx="${x}" cy="${y}" r="2.4" fill="#F7F3EA"/>`).join(''),
+      // Twee beren: a big bear and a little bear
+      bear: () => `<rect x="-75" y="-75" width="150" height="150" fill="#F2D9B0"/>` +
+        `<g transform="translate(-16 -2) scale(2.2)">${ICONS.bear}</g><g transform="translate(42 34) scale(1.3)">${ICONS.bear}</g>`,
+      // Blij-liedje: a laughing sun
+      sun: () => `<rect x="-75" y="-75" width="150" height="150" fill="${light('#E8B83A', 0.6)}"/>` +
+        `<g transform="scale(3)">${ICONS.sun}</g>` + face(0, -2, 1.2)
+    };
+    const cardClip = el('clipPath', { id: 'radio-card' }, defs);
+    el('rect', { x: -CARD / 2, y: -CARD / 2, width: CARD, height: CARD, rx: 18 }, cardClip);
+    const cards = SONGS.map((s) => {
+      const g = el('g', {}, screen);
+      const inner = el('g', { 'clip-path': 'url(#radio-card)' }, g);
+      inner.innerHTML = ART[s.icon]();
+      if (kit.grain) el('rect', { x: -CARD / 2, y: -CARD / 2, width: CARD, height: CARD, fill: kit.grain, opacity: 0.6, class: 'grain', 'pointer-events': 'none' }, inner);
+      el('rect', { x: -CARD / 2, y: -CARD / 2, width: CARD, height: CARD, rx: 18, fill: 'none', stroke: '#F7F3EA', 'stroke-width': 4 }, g);
+      return { g };
+    });
+    // play badge over the current card while the music is off
+    const badge = el('g', { 'pointer-events': 'none' }, screen);
+    el('circle', { r: 26, fill: INK, 'fill-opacity': 0.55 }, badge);
+    el('path', { d: 'M -8 -13 L 14 0 L -8 13 Z', fill: '#F7F3EA', stroke: '#F7F3EA', 'stroke-width': 4, 'stroke-linejoin': 'round' }, badge);
+    // invisible tap target on the current card
+    const cardHit = el('rect', { x: CARD_X - CARD / 2, y: CARD_Y - CARD / 2, width: CARD, height: CARD, rx: 18, fill: '#000', 'fill-opacity': 0 }, svg);
+
+    // Card positions: the current card sits left of centre; the previous card
+    // peeks in at the left edge, the next one at the right edge.
+    let pos = 0;             // shown position (float while sliding)
+    function cardOffset(k) { return k < 0 ? k * 170 : k * 312; }
+    function layoutCards() {
+      const n = SONGS.length;
+      cards.forEach((c, i) => {
+        let k = i - pos;
+        if (k > n / 2) k -= n;
+        if (k < -n / 2) k += n;
+        const visible = Math.abs(k) < 1.6;
+        c.g.setAttribute('display', visible ? 'inline' : 'none');
+        if (visible) {
+          const lo = Math.floor(k), t = k - lo;
+          const x = CARD_X + cardOffset(lo) + (cardOffset(lo + 1) - cardOffset(lo)) * t;
+          const sc = 1 - Math.min(1, Math.abs(k)) * 0.12;
+          c.g.setAttribute('transform', `translate(${x.toFixed(1)} ${CARD_Y}) scale(${sc.toFixed(3)})`);
+        }
+      });
+    }
+
+    // ---- Equaliser and notes (right part of the screen) ----
+    const EQ_COLORS = ['#D9574C', '#E8B83A', '#6FA36B', '#4A7BC9', '#8C5BB5'];
+    const eq = EQ_COLORS.map((c, i) => el('rect', { x: 446 + i * 22, y: 240, width: 14, height: 20, rx: 7, fill: light(c, 0.25) }, screen));
+    const notes = [0, 1, 2].map((i) => {
+      const g = el('g', { 'pointer-events': 'none', opacity: 0 }, screen);
+      el('ellipse', { cx: 0, cy: 0, rx: 7, ry: 5.5, fill: '#F7F3EA', transform: 'rotate(-20)' }, g);
+      el('path', { d: i === 1 ? 'M 6 -2 V -26 L 18 -22 V -2' : 'M 6 -2 V -26 q 8 4 10 12', fill: 'none', stroke: '#F7F3EA', 'stroke-width': 3, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, g);
+      return { g, phase: i / 3, x: 455 + i * 36 };
+    });
+
+    // ---- Progress bar ----
+    el('rect', { x: 236, y: 312, width: 306, height: 10, rx: 5, fill: '#F7F3EA', 'fill-opacity': 0.25 }, screen);
+    const fill = el('rect', { x: 236, y: 312, width: 0, height: 10, rx: 5, fill: '#F2D9B0' }, screen);
+    const knob = el('g', {}, screen);
+    el('circle', { r: 15, fill: INK, stroke: '#F2D9B0', 'stroke-width': 4 }, knob);
+    el('circle', { r: 7, fill: '#F2D9B0' }, knob);
+
+    // ---- Arrows ----
+    function arrow(x, y, dir) {
+      const g = el('g', { transform: `translate(${x} ${y})` }, svg);
+      const tri = `M ${-30 * dir} -40 L ${34 * dir} 0 L ${-30 * dir} 40 Z`;
+      el('path', { d: tri, fill: '#C9961E', stroke: '#C9961E', 'stroke-width': 14, 'stroke-linejoin': 'round', transform: 'translate(0 7)' }, g);
+      const top = el('g', {}, g);
+      el('path', { d: tri, fill: '#E8B83A', stroke: '#E8B83A', 'stroke-width': 14, 'stroke-linejoin': 'round' }, top);
+      el('path', { d: `M ${-22 * dir} -26 L ${-22 * dir} 6`, stroke: '#fff', 'stroke-opacity': 0.4, 'stroke-width': 6, 'stroke-linecap': 'round' }, top);
+      el('circle', { r: 56, fill: '#000', 'fill-opacity': 0 }, g);   // generous hit area
+      const press = (down) => top.setAttribute('transform', down ? 'translate(0 6)' : '');
+      g.addEventListener('pointerdown', (e) => { e.preventDefault(); press(true); go(dir); });
+      ['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => g.addEventListener(t, () => press(false)));
+      return g;
+    }
+    arrow(104, 210, -1);
+    arrow(676, 210, 1);
+
+    // ---- Speakers with sound rays ----
+    function speaker(x, y) {
+      const g = el('g', { transform: `translate(${x} ${y})`, 'pointer-events': 'none' }, svg);
+      [-14, 0, 14].forEach((o) => el('path', { d: `M ${-22 + o} ${12 + o * 0.2} L ${22 + o} ${-12 + o * 0.2}`, stroke: '#8E6232', 'stroke-width': 8, 'stroke-linecap': 'round', transform: `translate(${o * 0.4} ${o})` }, g));
+      const rays = el('g', { opacity: 0.25 }, g);
+      for (let i = 0; i < 10; i++) {
+        const a = (i / 10) * Math.PI * 2 + 0.3;
+        el('path', { d: `M ${Math.cos(a) * 44} ${Math.sin(a) * 40} L ${Math.cos(a) * 58} ${Math.sin(a) * 53}`, stroke: '#E8B83A', 'stroke-width': 5, 'stroke-linecap': 'round' }, rays);
+      }
+      return rays;
+    }
+    const rays = [speaker(104, 330), speaker(676, 330)];
 
     // Rotatable part: a group whose transform is rotate(angle px py).
     function part(parent, px, py) {
@@ -338,6 +375,32 @@ KH.games = KH.games || [];
       return { pose, head, legL, legR, earL, earR, tail, eye };
     }
 
+    // ---- Stickers ----
+    // Each animal sits on a die-cut white backing with a soft shadow, like a
+    // sticker on the radio. The backing is the animal's outline drawn with a
+    // thick white stroke (no SVG filter, so it stays cheap while dancing).
+    function backing(parent, kind, color, opacity, dy) {
+      const g = el('g', { transform: `translate(0 ${dy})`, 'pointer-events': 'none' }, parent);
+      const st = { fill: color, stroke: color, 'stroke-width': 20, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', 'fill-opacity': opacity, 'stroke-opacity': opacity };
+      const shape = (attrs, tag) => el(tag || 'path', Object.assign({}, st, attrs), g);
+      // shared lower half
+      shape({ cx: 0, cy: -30, rx: 34, ry: 30 }, 'ellipse');
+      shape({ cx: 0, cy: -10, rx: 42, ry: 12 }, 'ellipse');
+      if (kind === 'bear') {
+        shape({ d: blob(0, -94, 84, 70, { n: 3.1, taper: 0.9, seed: 40 }) });
+        [-1, 1].forEach((s) => shape({ cx: s * 31, cy: -123, r: 12 }, 'circle'));
+      } else if (kind === 'cat') {
+        shape({ d: blob(0, -94, 90, 68, { n: 2.8, taper: 0.94, seed: 140 }) });
+        [-1, 1].forEach((s) => shape({ d: `M ${s * 11} -116 L ${s * 26} -139 Q ${s * 32} -146 ${s * 35} -138 L ${s * 40} -108 Z` }));
+        shape({ d: 'M 22 -14 C 48 -14, 52 -40, 42 -58', fill: 'none', 'stroke-width': 30 });
+      } else {
+        shape({ d: blob(0, -94, 84, 70, { n: 3, taper: 0.92, seed: 240 }) });
+        [-1, 1].forEach((s) => shape({ d: blob(s * 42, -98, 20, 44, { taper: 0.7, seed: 250 + s }) }));
+        shape({ d: 'M 22 -16 Q 36 -20, 40 -38', fill: 'none', 'stroke-width': 29 });
+      }
+      return g;
+    }
+
     // Short, soft tap sounds: two notes each, on the toy instruments.
     function voice(kind) {
       const c = audio.context();
@@ -348,17 +411,20 @@ KH.games = KH.games || [];
       if (kind === 'dog')  { audio.noteAt(523.3, t, 0.25, 0.1, 'xylo'); audio.noteAt(523.3, t + 0.15, 0.3, 0.1, 'xylo'); }
     }
 
+    // Placement: bear top-left, cat top-right, dog stuck across the top-right
+    // corner of the screen frame. x, y = feet; s = size; rot = sticker tilt.
     const dancers = [
-      { kind: 'bear', x: 100, draw: drawBear },
-      { kind: 'cat',  x: 200, draw: drawCat },
-      { kind: 'dog',  x: 300, draw: drawDog }
+      { kind: 'bear', x: 104, y: 142, s: 0.62, rot: -7, draw: drawBear },
+      { kind: 'cat',  x: 676, y: 142, s: 0.62, rot: 6,  draw: drawCat },
+      { kind: 'dog',  x: 590, y: 96,  s: 0.46, rot: 12, draw: drawDog }
     ].map((d, i) => {
-      const shadow = el('ellipse', { cx: d.x, cy: 558, rx: 34, ry: 6, fill: INK, 'fill-opacity': 0.14 }, floorG);
-      const g = el('g', {}, floorG);
-      // generous invisible hit area so a small finger always catches the animal
-      el('ellipse', { cx: 0, cy: -70, rx: 44, ry: 72, fill: '#000', 'fill-opacity': 0 }, g);
+      const g = el('g', {}, svg);
+      backing(g, d.kind, INK, 0.16, 6);           // shadow
+      backing(g, d.kind, '#FFFFFF', 1, 0);        // white sticker edge
       const parts = d.draw(g);
-      const dancer = Object.assign({ g, shadow, parts, phase: i * 0.5, jump: 0, happyUntil: 0, nextBlink: performance.now() + 1500 + i * 900, blinkUntil: 0 }, d);
+      // generous invisible hit area so a small finger always catches the sticker
+      el('ellipse', { cx: 0, cy: -70, rx: 62, ry: 90, fill: '#000', 'fill-opacity': 0 }, g);
+      const dancer = Object.assign({ g, parts, phase: i * 0.5, jump: 0, happyUntil: 0, nextBlink: performance.now() + 1500 + i * 900, blinkUntil: 0 }, d);
       g.addEventListener('pointerdown', (e) => {
         e.preventDefault();
         dancer.jump = 1;
@@ -367,64 +433,60 @@ KH.games = KH.games || [];
       });
       return dancer;
     });
-    const baseY = 557;
-    const JUMP = 70;
+    const JUMP = 46;   // in sticker units (before scaling)
 
     // One dance per animal. b = beats since the song started (0 when quiet),
     // t = seconds, on = music playing and motion allowed, j = jump 0..1.
-    // Front legs only lift a little (0..1); they stay under the body.
+    // The whole sticker hops and squashes; inside it the animal rocks, nods,
+    // lifts its paws and moves ears and tail.
     function poseDancer(d, b, t, on, j) {
       const p = d.parts;
       const s1 = Math.sin(b * Math.PI);          // one swing per two beats
       const s2 = Math.sin(b * Math.PI * 2);      // one swing per beat
-      let bob = 0, sway = 0, tilt = 0, legL = 0, legR = 0, earL = 0, earR = 0, tail = 0, squash = 1;
+      let bob = 0, sway = 0, tilt = 0, legL = 0, legR = 0, earL = 0, earR = 0, tail = 0, squash = 1, wiggle = 0;
       if (d.kind === 'bear') {
-        // rocks side to side, head bobs, paws tap one at a time
-        if (on) {
-          bob = Math.abs(s1) * 6;
-          sway = s1 * 5;
-          tilt = -s1 * 7;
-          legL = Math.max(0, s1); legR = Math.max(0, -s1);
-          earL = earR = s2 * 10;
-          squash = 1 + s2 * 0.035;
-        }
-      } else if (d.kind === 'cat') {
-        // little hop on every beat, both paws up at the top, slow tail swish
-        if (on) {
-          const hop = Math.abs(s1);
-          bob = hop * 12;
-          legL = legR = hop * 0.8;
-          tilt = Math.sin(b * Math.PI / 2) * 9;
-          earL = -Math.pow(Math.max(0, s1), 8) * 18;   // ear twitch on alternate beats
-          squash = 1 - Math.cos(b * Math.PI * 2) * 0.04;
-        }
-        tail = Math.sin(t * (on ? 2.2 : 0.9)) * (on ? 26 : 9);
-      } else {
-        // bouncy dog: paddling paws, floppy ears that lag, fast tail wag
         if (on) {
           bob = Math.abs(s1) * 10;
-          tilt = s1 * 7;
-          legL = Math.max(0, s2); legR = Math.max(0, -s2);
-          const flop = Math.sin((b - 0.2) * Math.PI * 2) * 14;
-          earL = flop; earR = -flop;
-          squash = 1 + s2 * 0.045;
+          sway = s1 * 4;
+          tilt = -s1 * 7;
+          wiggle = s1 * 4;
+          legL = Math.max(0, s1); legR = Math.max(0, -s1);
+          earL = earR = s2 * 10;
+          squash = 1 + s2 * 0.04;
         }
-        tail = Math.sin(t * (on ? 22 : 6)) * (on ? 28 : 10);
+      } else if (d.kind === 'cat') {
+        if (on) {
+          const hop = Math.abs(s1);
+          bob = hop * 16;
+          legL = legR = hop * 0.8;
+          tilt = Math.sin(b * Math.PI / 2) * 8;
+          earL = -Math.pow(Math.max(0, s1), 8) * 18;
+          squash = 1 - Math.cos(b * Math.PI * 2) * 0.05;
+        }
+        tail = Math.sin(t * (on ? 2.2 : 0.9)) * (on ? 14 : 6);
+      } else {
+        if (on) {
+          bob = Math.abs(s1) * 12;
+          tilt = s1 * 7;
+          wiggle = -s1 * 5;
+          legL = Math.max(0, s2); legR = Math.max(0, -s2);
+          const flop = Math.sin((b - 0.2) * Math.PI * 2) * 10;
+          earL = flop; earR = -flop;
+          squash = 1 + s2 * 0.05;
+        }
+        tail = Math.sin(t * (on ? 22 : 6)) * (on ? 16 : 8);
       }
       if (j > 0.05) { legL = Math.max(legL, j); legR = Math.max(legR, j); }
       if (!on && !reduced) squash = 1 + Math.sin(t * 2 + d.phase * 4) * 0.015;   // breathing
-      if (reduced) tail = 0;
+      if (reduced) { tail = 0; wiggle = 0; }
 
-      const y = baseY - bob - j * JUMP;
-      d.g.setAttribute('transform', `translate(${d.x} ${y.toFixed(1)}) scale(${(1 / squash).toFixed(3)} ${squash.toFixed(3)})`);
+      const lift = (bob + j * JUMP) * d.s;
+      d.g.setAttribute('transform', `translate(${d.x} ${(d.y - lift).toFixed(1)}) rotate(${(d.rot + wiggle).toFixed(1)}) scale(${(d.s / squash).toFixed(3)} ${(d.s * squash).toFixed(3)})`);
       p.pose.setAttribute('transform', `rotate(${sway.toFixed(1)} 0 0)`);
       p.head.set(tilt);
       p.legL.set(legL); p.legR.set(legR);
       p.earL.set(earL); p.earR.set(earR);
       if (p.tail) p.tail.set(tail);
-      const lift = Math.min(1, (bob + j * JUMP) / 80);
-      d.shadow.setAttribute('rx', (34 * (1 - lift * 0.45)).toFixed(1));
-      d.shadow.setAttribute('fill-opacity', (0.14 * (1 - lift * 0.6)).toFixed(3));
     }
 
     function eyesFor(d, now) {
@@ -441,6 +503,7 @@ KH.games = KH.games || [];
     let nextIdx = 0;      // next note to schedule
     let nextTime = 0;     // ac time of that note
     let timer = 0;
+    let totalBeats = 1;   // length of the current song, for the progress bar
 
     function ensure() {
       if (!ac) {
@@ -572,37 +635,41 @@ KH.games = KH.games || [];
       if (!ensure()) return;
       playing = true;
       bars = analyse(SONGS[station]);
+      totalBeats = SONGS[station].notes.reduce((a, n) => a + n[1], 0) + 2;
       nextIdx = 0; barIdx = 0;
       nextTime = ac.currentTime + 0.1;
       barTime = nextTime;
       songStart = nextTime;
       clearInterval(timer);
       timer = setInterval(schedule, 40);
-      powerIcon.setAttribute('d', 'M -10 -14 H -3 V 6 H -10 Z M 3 -14 H 10 V 6 H 3 Z');
     }
     function stop() {
       playing = false;
       clearInterval(timer);
-      powerIcon.setAttribute('d', 'M -8 -14 L 12 -4 L -8 6 Z');
     }
 
+    // Slide the cards to a new song; with fromUser it also starts playing.
+    let slideCancel = null;
     function selectStation(i, fromUser) {
-      station = i;
-      stationBtns.forEach((b, j) => b.bg.setAttribute('fill', j === i ? '#E8B83A' : '#F7F3EA'));
-      needle.setAttribute('x', 268 + i * 11.5 - 0.5);
+      const n = SONGS.length;
+      const from = pos;
+      let to = i;
+      // take the short way round, so the wrap from last to first slides one step
+      while (to - from > n / 2) to -= n;
+      while (from - to > n / 2) to += n;
+      station = ((i % n) + n) % n;
+      if (slideCancel) slideCancel();
+      if (reduced || !fromUser) { pos = station; layoutCards(); }
+      else slideCancel = U.tween(320, U.ease.out, (e) => { pos = from + (to - from) * e; layoutCards(); }, () => { pos = station; layoutCards(); slideCancel = null; });
       if (fromUser) { audio.click(); start(); }
     }
+    function go(dir) { selectStation(station + dir, true); }
 
-    powerCap.addEventListener('pointerdown', (e) => {
+    cardHit.addEventListener('pointerdown', (e) => {
       e.preventDefault();
-      powerCap.setAttribute('cy', 0);
       audio.click();
       if (playing) stop(); else start();
     });
-    const up = () => powerCap.setAttribute('cy', -4);
-    powerCap.addEventListener('pointerup', up);
-    powerCap.addEventListener('pointercancel', up);
-    powerCap.addEventListener('pointerleave', up);
 
     selectStation(0, false);
 
@@ -623,7 +690,30 @@ KH.games = KH.games || [];
         const st = eyesFor(d, now);
         if (st !== d.eyeState) { d.eyeState = st; d.parts.eye.show(st); }
       });
-      if (!reduced) grille.forEach((c, i) => c.setAttribute('r', 6 + pulse * 2.5 * ((i % 3) === 0 ? 1 : 0.5)));
+
+      // play badge, card pulse, progress
+      badge.setAttribute('display', playing ? 'none' : 'inline');
+      badge.setAttribute('transform', `translate(${CARD_X} ${CARD_Y})`);
+      if (on) cards[station].g.setAttribute('transform', `translate(${CARD_X} ${CARD_Y}) scale(${(1 + pulse * 0.025).toFixed(3)})`);
+      const prog = playing ? Math.min(1, Math.max(0, beat) / totalBeats) : 0;
+      fill.setAttribute('width', (306 * prog).toFixed(1));
+      knob.setAttribute('transform', `translate(${(243 + 292 * prog).toFixed(1)} 317)`);
+
+      // equaliser bars and floating notes
+      eq.forEach((r, i) => {
+        const h = playing && !reduced
+          ? 18 + 70 * Math.abs(Math.sin(beat * Math.PI * (0.5 + i * 0.25) + i)) * (0.5 + pulse * 0.5)
+          : 18;
+        r.setAttribute('y', (260 - h).toFixed(1));
+        r.setAttribute('height', h.toFixed(1));
+      });
+      notes.forEach((nt) => {
+        if (!on) { nt.g.setAttribute('opacity', 0); return; }
+        const k = ((beat / 4) + nt.phase) % 1;
+        nt.g.setAttribute('opacity', (Math.sin(k * Math.PI) * 0.9).toFixed(2));
+        nt.g.setAttribute('transform', `translate(${(nt.x + Math.sin(k * 6) * 6).toFixed(1)} ${(150 - k * 90).toFixed(1)})`);
+      });
+      rays.forEach((r) => r.setAttribute('opacity', (on ? 0.25 + pulse * 0.75 : 0.25).toFixed(2)));
       raf = requestAnimationFrame(frame);
     }
     raf = requestAnimationFrame(frame);
@@ -631,6 +721,7 @@ KH.games = KH.games || [];
     return {
       destroy() {
         stop();
+        if (slideCancel) slideCancel();
         cancelAnimationFrame(raf);
         svg.remove();
       }

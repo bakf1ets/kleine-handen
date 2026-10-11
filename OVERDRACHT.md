@@ -26,6 +26,7 @@ Draait als "Zet op beginscherm" vanaf GitHub Pages. Getest op iPhone. De ouder t
 - Rechtop toont `#rotate` (index.html, app.css) een plaatje van een telefoon die draait, zonder tekst. Het ouderscherm ligt daar bovenop.
 - Beginscherm: alle tegels op één scherm, rijen van vier (`.tile-row`), tegelmaat via container-eenheden (`cqh`/`cqw`) in app.css.
 - `.screen` heeft safe-area-padding aan alle vier kanten (notch links/rechts bij liggend).
+- Radio (0.8.0): opbouw als muziekspeler (scherm met platen, grote pijlen, voortgangsbalk, luidsprekers, stickers). De ouder liet een Pok Pok-screenshot zien; alleen de opbouw is overgenomen, geen tekeningen, logo of kleuren van Pok Pok. Stickerrand = de omtrek van het dier met een dikke witte lijn (geen filter).
 - Leeftijdsfilter (0.7.1): schakelaar "Filter op leeftijd" in het ouderscherm (`settings.ageFilter`, standaard aan). Uit = alle speeltjes, leeftijdsknoppen gedimd.
 - Ouderscherm (0.7.0): gecentreerde kaart met twee kolommen (`.sheet-col`), scrolt binnen de kaart als het toch niet past; onder 560 px breed één kolom.
 - Tekenen (0.7.0): kleurenkolom rechts (twee breed) in plaats van een balk onderaan.
@@ -86,7 +87,7 @@ Nieuwe speeltjes: bestand maken, `<script>` toevoegen aan `index.html` (vóór `
 | draw | Tekenen | 1–6 | canvas | dikke kwast, zes kleuren, spons wist langzaam |
 | shapes | Vormenbord | 2–3 | SVG | drie dieren (cirkel=beer, vierkant=poes, driehoek=vogeltje) in drie gaten, zelfcorrigerend, wisselt na ronde; geen knop meer |
 | blocks | Blokken | 2–5 | SVG + Matter.js | stapelen, omgooien; veer per vinger |
-| radio | Radio | 1–6 | SVG + Web Audio | 7 zenders, elk eigen instrument + begeleiding; zittende beer, poes en hond dansen tussen bladeren |
+| radio | Radio | 1–6 | SVG + Web Audio | 7 liedjes als platen in een scherm (pijlen wisselen, tik op de plaat = start/stop), equalizer, voortgangsbalk; beer, poes en hond als stickers die meedansen |
 | music | Muziekhoek | 1–6 | SVG | 8 regenboogtoetsen (glissando), trommel, bekken, shaker, bel, instrumentknop |
 
 Radio-liedjes: Kortjakje, Vader Jacob, Boerderij, Bootje, Lammetje, Ik zag twee beren (noten van bladmuziek), Blij-liedje (eigen). Harmonie per maat wordt automatisch afgeleid (I/IV/V).
