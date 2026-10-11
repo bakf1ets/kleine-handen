@@ -1,5 +1,5 @@
 // Offline shell. Bump CACHE when files change so phones pick up the new version.
-const CACHE = 'kleine-handen-v0.7.0';
+const CACHE = 'kleine-handen-v0.7.1';
 const FILES = [
   './',
   './index.html',

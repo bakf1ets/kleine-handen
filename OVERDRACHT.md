@@ -26,6 +26,7 @@ Draait als "Zet op beginscherm" vanaf GitHub Pages. Getest op iPhone. De ouder t
 - Rechtop toont `#rotate` (index.html, app.css) een plaatje van een telefoon die draait, zonder tekst. Het ouderscherm ligt daar bovenop.
 - Beginscherm: alle tegels op één scherm, rijen van vier (`.tile-row`), tegelmaat via container-eenheden (`cqh`/`cqw`) in app.css.
 - `.screen` heeft safe-area-padding aan alle vier kanten (notch links/rechts bij liggend).
+- Leeftijdsfilter (0.7.1): schakelaar "Filter op leeftijd" in het ouderscherm (`settings.ageFilter`, standaard aan). Uit = alle speeltjes, leeftijdsknoppen gedimd.
 - Ouderscherm (0.7.0): gecentreerde kaart met twee kolommen (`.sheet-col`), scrolt binnen de kaart als het toch niet past; onder 560 px breed één kolom.
 - Tekenen (0.7.0): kleurenkolom rechts (twee breed) in plaats van een balk onderaan.
 - Huis- en slotknop hebben een lichte achtergrond, zodat ze ook op donkere speeltjes (Muziekdruppels) zichtbaar zijn.

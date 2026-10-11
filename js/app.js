@@ -2,7 +2,7 @@
 window.KH = window.KH || {};
 
 (function () {
-  const VERSION = '0.7.0';
+  const VERSION = '0.7.1';
   const HOLD_MS = 2000;
 
   const $ = (sel) => document.querySelector(sel);
@@ -16,6 +16,7 @@ window.KH = window.KH || {};
   const homeBtn = $('#home-btn');
   const ageChips = $('#age-chips');
   const soundToggle = $('#sound-toggle');
+  const ageFilterToggle = $('#age-filter-toggle');
   const grainToggle = $('#grain-toggle');
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -23,7 +24,7 @@ window.KH = window.KH || {};
   // Settings live only on this device.
   const settings = load();
   function load() {
-    const def = { age: 2, sound: true, grain: true };
+    const def = { age: 2, ageFilter: true, sound: true, grain: true };
     try {
       const raw = localStorage.getItem('kh.settings');
       return raw ? Object.assign(def, JSON.parse(raw)) : def;
@@ -57,7 +58,8 @@ window.KH = window.KH || {};
 
   function renderHome() {
     tiles.innerHTML = '';
-    const visible = KH.games.filter((g) => settings.age >= g.minAge && settings.age <= g.maxAge)
+    // The parent can switch the age filter off to show every toy.
+    const visible = KH.games.filter((g) => !settings.ageFilter || (settings.age >= g.minAge && settings.age <= g.maxAge))
       .sort((a, b) => a.minAge - b.minAge || a.maxAge - b.maxAge);
     // Rows of four, each centred, so a short last row sits in the middle.
     let row = null;
@@ -150,11 +152,19 @@ window.KH = window.KH || {};
   }
   function openSettings() {
     renderChips();
+    ageFilterToggle.checked = settings.ageFilter;
+    ageChips.classList.toggle('off', !settings.ageFilter);
     soundToggle.checked = settings.sound;
     grainToggle.checked = settings.grain;
     settingsSheet.hidden = false;
     $('#settings-close').focus();
   }
+  ageFilterToggle.addEventListener('change', () => {
+    settings.ageFilter = ageFilterToggle.checked;
+    ageChips.classList.toggle('off', !settings.ageFilter);
+    save();
+    renderHome();
+  });
   soundToggle.addEventListener('change', () => {
     settings.sound = soundToggle.checked;
     KH.audio.setEnabled(settings.sound);
