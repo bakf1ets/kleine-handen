@@ -2,7 +2,7 @@
 window.KH = window.KH || {};
 
 (function () {
-  const VERSION = '0.6.2';
+  const VERSION = '0.6.3';
   const HOLD_MS = 2000;
 
   const $ = (sel) => document.querySelector(sel);
@@ -101,21 +101,35 @@ window.KH = window.KH || {};
     if (p >= 1) { endHold(); openSettings(); return; }
     holdRaf = requestAnimationFrame(holdFrame);
   }
+  // A finger is never perfectly still, so the hold only ends when the finger
+  // lifts or really slides away (more than 40 px), not on every tiny wobble.
+  let holding = false, holdX = 0, holdY = 0;
   function startHold(evt) {
     evt.preventDefault();
+    if (holding) return;
+    holding = true;
+    holdX = evt.clientX; holdY = evt.clientY;
+    try { parentBtn.setPointerCapture(evt.pointerId); } catch (e) { /* fine */ }
     holdStart = performance.now();
     parentBtn.classList.add('holding');
     holdRaf = requestAnimationFrame(holdFrame);
   }
   function endHold() {
+    holding = false;
     cancelAnimationFrame(holdRaf);
     parentBtn.classList.remove('holding');
     parentBtn.style.setProperty('--p', 0);
   }
   parentBtn.addEventListener('pointerdown', startHold);
+  parentBtn.addEventListener('pointermove', (e) => {
+    if (holding && Math.hypot(e.clientX - holdX, e.clientY - holdY) > 40) endHold();
+  });
   parentBtn.addEventListener('pointerup', endHold);
-  parentBtn.addEventListener('pointerleave', endHold);
   parentBtn.addEventListener('pointercancel', endHold);
+  // iOS can still decide a long touch is a system gesture; blocking the touch
+  // events themselves keeps the hold ours.
+  parentBtn.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+  parentBtn.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
   parentBtn.addEventListener('contextmenu', (e) => e.preventDefault());
   // Keyboard users (and parents without touch) get the sheet on Enter/Space.
   parentBtn.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSettings(); } });

@@ -1,5 +1,5 @@
 // Offline shell. Bump CACHE when files change so phones pick up the new version.
-const CACHE = 'kleine-handen-v0.6.2';
+const CACHE = 'kleine-handen-v0.6.3';
 const FILES = [
   './',
   './index.html',
@@ -22,7 +22,11 @@ const FILES = [
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
+  // cache: 'reload' skips the browser's HTTP cache (GitHub Pages keeps files
+  // there for 10 minutes), so a new version never stores an old file.
+  e.waitUntil(caches.open(CACHE)
+    .then((c) => c.addAll(FILES.map((f) => new Request(f, { cache: 'reload' }))))
+    .then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {
