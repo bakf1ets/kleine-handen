@@ -2,7 +2,7 @@
 window.KH = window.KH || {};
 
 (function () {
-  const VERSION = '0.8.0';
+  const VERSION = '0.9.0';
   const HOLD_MS = 2000;
 
   const $ = (sel) => document.querySelector(sel);

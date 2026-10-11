@@ -26,6 +26,12 @@ Draait als "Zet op beginscherm" vanaf GitHub Pages. Getest op iPhone. De ouder t
 - Rechtop toont `#rotate` (index.html, app.css) een plaatje van een telefoon die draait, zonder tekst. Het ouderscherm ligt daar bovenop.
 - Beginscherm: alle tegels op één scherm, rijen van vier (`.tile-row`), tegelmaat via container-eenheden (`cqh`/`cqw`) in app.css.
 - `.screen` heeft safe-area-padding aan alle vier kanten (notch links/rechts bij liggend).
+- Knikkerbaan (0.9.0), lessen uit het afstellen met Matter.js:
+  - `frictionStatic: 0` op knikkers en baandelen, en knikker-`friction: 0`. Met de standaardwaarden (0.5 / zelfs 0.002) blijven knikkers op een flauwe helling liggen.
+  - Zonder wrijving glijden ze te hard en vliegen over de volgende plank: daarom heeft elke schuine plank een paaltje voorbij het lage eind (27 px opening, knikker is 22). Paaltjes mogen niet onder hun plank uitsteken, anders blokkeren ze knikkers in de goot.
+  - Alles boven de goot moet minstens ~24 px vrij blijven, anders lopen knikkers in de goot vast.
+  - Knikkers krijgen ±1,5 px willekeurige verschuiving (anders balanceren ze eeuwig op een bel) en verdwijnen na 10 s stilliggen.
+  - Getest door vanaf tien plekken een knikker te laten vallen en de route te volgen: allemaal bij het gat.
 - Radio (0.8.0): opbouw als muziekspeler (scherm met platen, grote pijlen, voortgangsbalk, luidsprekers, stickers). De ouder liet een Pok Pok-screenshot zien; alleen de opbouw is overgenomen, geen tekeningen, logo of kleuren van Pok Pok. Stickerrand = de omtrek van het dier met een dikke witte lijn (geen filter).
 - Leeftijdsfilter (0.7.1): schakelaar "Filter op leeftijd" in het ouderscherm (`settings.ageFilter`, standaard aan). Uit = alle speeltjes, leeftijdsknoppen gedimd.
 - Ouderscherm (0.7.0): gecentreerde kaart met twee kolommen (`.sheet-col`), scrolt binnen de kaart als het toch niet past; onder 560 px breed één kolom.
@@ -89,6 +95,7 @@ Nieuwe speeltjes: bestand maken, `<script>` toevoegen aan `index.html` (vóór `
 | blocks | Blokken | 2–5 | SVG + Matter.js | stapelen, omgooien; veer per vinger |
 | radio | Radio | 1–6 | SVG + Web Audio | 7 liedjes als platen in een scherm (pijlen wisselen, tik op de plaat = start/stop), equalizer, voortgangsbalk; beer, poes en hond als stickers die meedansen |
 | music | Muziekhoek | 1–6 | SVG | 8 regenboogtoetsen (glissando), trommel, bekken, shaker, bel, instrumentknop |
+| marbles | Knikkerbaan | 1–6 | SVG + Matter.js | gaatjesbord met kant-en-klare baan; tik = knikker valt van boven; planken klinken als xylofoon; bouwen uit het bakje rechts (slepen, tik = schuiner, terug naar bakje = weg) |
 
 Radio-liedjes: Kortjakje, Vader Jacob, Boerderij, Bootje, Lammetje, Ik zag twee beren (noten van bladmuziek), Blij-liedje (eigen). Harmonie per maat wordt automatisch afgeleid (I/IV/V).
 
