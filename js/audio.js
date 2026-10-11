@@ -16,6 +16,11 @@ KH.audio = (function () {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return null;
     if (!ctx) {
+      // iPhone: by default web audio is 'ambient' and goes quiet when the
+      // ring/silent switch is on. 'playback' keeps it audible (iOS 17+,
+      // see WebKit bug 237322). Older iOS ignores this and stays silent.
+      // The parent can still turn sound off in the parent screen.
+      try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { /* not supported: fine */ }
       ctx = new AC();
       buildChain();
     }

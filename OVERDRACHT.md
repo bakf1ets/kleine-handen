@@ -149,6 +149,7 @@ Randvoorwaarden:
 - Zendericoon "beer" op de radio is nog de oude platte stijl.
 
 - Wake lock en service worker zijn niet getest vanaf GitHub Pages (de testpagina in Claude draait in een beveiligd kader waar dat niet werkt).
+- Stille modus iPhone: `audio.js` zet `navigator.audioSession.type = 'playback'` voor het maken van de AudioContext (iOS 17+), zodat geluid ook klinkt met de stille-schakelaar aan. Oudere iOS blijft stil; de truc met een stil `<audio>`-element is bewust niet gebruikt (geeft mediabediening op het vergrendelscherm). Niet zelf op een toestel getest.
 - Safari pauzeert de AudioContext in de achtergrond; de eerste tik na terugkomen kan stil zijn. `KH.audio.unlock` wordt op elke pointerdown aangeroepen, dat zou het moeten opvangen.
 - Tekening blijft bij draaien van het toestel via een snapshot; niet op iOS gecontroleerd.
 - Ritmes van Boerderij en Lammetje komen uit het geheugen, niet van bladmuziek.
