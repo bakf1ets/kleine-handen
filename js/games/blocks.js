@@ -23,14 +23,18 @@ KH.games = KH.games || [];
     const el = U.el;
     const svg = el('svg', { viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: 'xMidYMid meet' }, stage);
 
-    // Room
-    el('rect', { x: 0, y: 0, width: W, height: FLOOR, fill: '#F6EFE2' }, svg);
-    el('rect', { x: 0, y: FLOOR, width: W, height: H - FLOOR, fill: '#D9A86C' }, svg);
-    for (let i = 1; i < 5; i++) el('line', { x1: 0, y1: FLOOR + i * 22, x2: W, y2: FLOOR + i * 22, stroke: '#C48C50', 'stroke-width': 2, 'stroke-opacity': 0.5 }, svg);
-    el('rect', { x: 0, y: FLOOR + 30, width: W, height: 10, fill: '#8E6232' }, svg);
+    // Room, with rounded corners like every other toy. Everything is drawn
+    // inside the clipped group, so a block flying off the side is cut cleanly.
+    const clip = el('clipPath', { id: 'blocks-room' }, el('defs', {}, svg));
+    el('rect', { x: 0, y: 0, width: W, height: H, rx: 28 }, clip);
+    const room = el('g', { 'clip-path': 'url(#blocks-room)' }, svg);
+    el('rect', { x: 0, y: 0, width: W, height: FLOOR, fill: '#F6EFE2' }, room);
+    el('rect', { x: 0, y: FLOOR, width: W, height: H - FLOOR, fill: '#D9A86C' }, room);
+    for (let i = 1; i < 5; i++) el('line', { x1: 0, y1: FLOOR + i * 22, x2: W, y2: FLOOR + i * 22, stroke: '#C48C50', 'stroke-width': 2, 'stroke-opacity': 0.5 }, room);
+    el('rect', { x: 0, y: FLOOR + 30, width: W, height: 10, fill: '#8E6232' }, room);
 
-    const layer = el('g', {}, svg);
-    const shelfLayer = el('g', {}, svg);
+    const layer = el('g', {}, room);
+    const shelfLayer = el('g', {}, room);
 
     if (!M) {
       // Physics library missing: say so quietly for the parent and stop.

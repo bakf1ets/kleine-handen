@@ -110,10 +110,10 @@ KH.games = KH.games || [];
     // station buttons
     const stationY = 262;
     const stationBtns = SONGS.map((s, i) => {
-      const x = 55 + i * 48.5;
+      const x = 62 + i * 46;   // seven buttons that stay inside the cabinet
       const g = el('g', { transform: `translate(${x} ${stationY})` }, cab);
-      const bg = el('circle', { r: 22, fill: '#F7F3EA', stroke: '#B07E44', 'stroke-width': 3 }, g);
-      const ic = el('g', { transform: 'scale(0.7)', 'pointer-events': 'none' }, g);
+      const bg = el('circle', { r: 20, fill: '#F7F3EA', stroke: '#B07E44', 'stroke-width': 3 }, g);
+      const ic = el('g', { transform: 'scale(0.64)', 'pointer-events': 'none' }, g);
       ic.innerHTML = ICONS[s.icon];
       g.addEventListener('pointerdown', (e) => { e.preventDefault(); selectStation(i, true); });
       return { g, bg };

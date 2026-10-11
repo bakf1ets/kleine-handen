@@ -69,28 +69,32 @@
 
 <div id="settings" class="sheet" hidden>
   <div class="sheet-card" role="dialog" aria-labelledby="settings-title">
-    <h2 id="settings-title">Voor ouders</h2>
-    <p class="muted">Deze instellingen bepalen welke spelletjes je kind ziet.</p>
+    <div class="sheet-col">
+      <h2 id="settings-title">Voor ouders</h2>
+      <p class="muted">Deze instellingen bepalen welke spelletjes je kind ziet.</p>
 
-    <h3>Leeftijd</h3>
-    <div id="age-chips" class="chips"></div>
+      <h3>Leeftijd</h3>
+      <div id="age-chips" class="chips"></div>
+    </div>
 
-    <h3>Geluid</h3>
-    <label class="switch">
-      <input type="checkbox" id="sound-toggle">
-      <span class="track"></span>
-      <span class="switch-label">Geluiden aan</span>
-    </label>
+    <div class="sheet-col">
+      <h3>Geluid</h3>
+      <label class="switch">
+        <input type="checkbox" id="sound-toggle">
+        <span class="track"></span>
+        <span class="switch-label">Geluiden aan</span>
+      </label>
 
-    <h3>Tekeningen</h3>
-    <label class="switch">
-      <input type="checkbox" id="grain-toggle">
-      <span class="track"></span>
-      <span class="switch-label">Waterverf-korrel</span>
-    </label>
+      <h3>Tekeningen</h3>
+      <label class="switch">
+        <input type="checkbox" id="grain-toggle">
+        <span class="track"></span>
+        <span class="switch-label">Waterverf-korrel</span>
+      </label>
 
-    <button id="settings-close" class="primary">Sluiten</button>
-    <p class="muted tiny">Houd het slotje twee seconden ingedrukt om hier terug te komen. Versie <span id="version"></span>.</p>
+      <button id="settings-close" class="primary">Sluiten</button>
+      <p class="muted tiny">Houd het slotje twee seconden ingedrukt om hier terug te komen. Versie <span id="version"></span>.</p>
+    </div>
   </div>
 </div>
 

@@ -59,7 +59,8 @@ body {
   height: 44px;
   border: 0;
   border-radius: 50%;
-  background: rgba(60, 74, 62, 0.10);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 2px 6px rgba(60, 74, 62, 0.18);
   color: var(--ink-soft);
   display: grid;
   place-items: center;
@@ -119,7 +120,7 @@ body {
 }
 .tile-row { display: flex; justify-content: center; gap: var(--gap); }
 .tile {
-  --ts: min(calc((100cqh - var(--gap)) / 2), calc((100cqw - 112px - 3 * var(--gap)) / 4));
+  --ts: min(calc((100cqh - var(--gap)) / 2), calc((100cqw - 3 * var(--gap)) / 4));
   width: var(--ts);
   height: var(--ts);
   aspect-ratio: 1;
@@ -142,7 +143,7 @@ body {
 .tile:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--bg-deep); }
 .tile:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .tile svg { width: 64%; height: 64%; }
-.tile .label { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; font-weight: 800; }
+.tile .label { font-size: clamp(9px, calc(var(--ts) * 0.078), 13px); letter-spacing: .03em; text-transform: uppercase; font-weight: 800; white-space: nowrap; }
 
 .parent-note {
   margin: 80px auto 0;
@@ -178,12 +179,17 @@ body {
 
 /* Drawing toy palette */
 .palette {
+  /* Landscape: a two-wide column on the right keeps the full height for drawing. */
   position: absolute;
-  left: 0; right: 0; bottom: 0;
+  top: 0; right: 0; bottom: 0;
+  width: 136px;   /* two 48px swatches + 10px gap + 2x12px padding + room for the 'selected' border */
   display: flex;
+  flex-wrap: wrap;
+  align-content: center;
   justify-content: center;
   gap: 10px;
   padding: 12px;
+  box-sizing: border-box;
   background: rgba(255,255,255,0.6);
   backdrop-filter: blur(6px);
 }
@@ -212,14 +218,23 @@ body {
   inset: 0;
   background: rgba(60, 74, 62, 0.35);
   display: grid;
-  place-items: end center;
+  place-items: center;
   z-index: 20;
   padding: 16px;
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
   box-sizing: border-box;
 }
 .sheet-card {
-  width: min(100%, 440px);
+  /* Landscape: two columns side by side so everything fits the low screen;
+     scrolls inside if a very small screen still runs out of height. */
+  width: min(100%, 660px);
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  column-gap: 28px;
+  align-items: start;
   background: var(--tile);
   border-radius: 24px;
   padding: 22px 22px 18px;
@@ -229,6 +244,8 @@ body {
   user-select: text;
   touch-action: auto;
 }
+.sheet-col { min-width: 0; }
+.sheet-col > h3:first-child { margin-top: 4px; }
 .sheet-card h2 { margin: 0 0 4px; font-size: 22px; font-weight: 800; text-wrap: balance; }
 .sheet-card h3 {
   margin: 20px 0 8px;
@@ -242,9 +259,9 @@ body {
 
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip {
-  min-width: 48px;
+  min-width: 44px;
   height: 44px;
-  padding: 0 14px;
+  padding: 0 12px;
   border-radius: 22px;
   border: 2px solid var(--bg-deep);
   background: #fff;
@@ -314,4 +331,10 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .rot-phone { animation: none; transform: rotate(-90deg); }
+}
+
+/* Narrow screens (an upright phone behind the rotate picture, or a small window): one column. */
+@media (max-width: 560px) {
+  .sheet-card { grid-template-columns: 1fr; }
+  .sheet-col > h3:first-child { margin-top: 20px; }
 }

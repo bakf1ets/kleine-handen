@@ -26,6 +26,10 @@ Draait als "Zet op beginscherm" vanaf GitHub Pages. Getest op iPhone. De ouder t
 - Rechtop toont `#rotate` (index.html, app.css) een plaatje van een telefoon die draait, zonder tekst. Het ouderscherm ligt daar bovenop.
 - Beginscherm: alle tegels op één scherm, rijen van vier (`.tile-row`), tegelmaat via container-eenheden (`cqh`/`cqw`) in app.css.
 - `.screen` heeft safe-area-padding aan alle vier kanten (notch links/rechts bij liggend).
+- Ouderscherm (0.7.0): gecentreerde kaart met twee kolommen (`.sheet-col`), scrolt binnen de kaart als het toch niet past; onder 560 px breed één kolom.
+- Tekenen (0.7.0): kleurenkolom rechts (twee breed) in plaats van een balk onderaan.
+- Huis- en slotknop hebben een lichte achtergrond, zodat ze ook op donkere speeltjes (Muziekdruppels) zichtbaar zijn.
+- Liggend-review is gedaan op 667×375, 844×390 en 932×430 (met de notch-zones ingetekend). Herhaal dat bij elke opmaakwijziging.
 - Manifest staat op `"orientation": "landscape"` en app.js probeert `screen.orientation.lock('landscape')` bij de eerste tik. Android doet daar iets mee. iPhone niet: iOS negeert de manifest-oriëntatie voor webapps, en `lock()` vereist volledig scherm, dat de iPhone voor webpagina's niet heeft (WebKit-bug 257695, stand 2024; niet opnieuw gecontroleerd). Op de iPhone draait het kind (of de ouder) het toestel zelf; rotatievergrendeling in het Bedieningspaneel moet uit staan.
 
 ## Structuur
