@@ -1,0 +1,317 @@
+/* Layout: one screen at a time, edge to edge; the child sees only the playfield and one small corner button. */
+:root {
+  --bg: #ECF1EA;          /* pale sage linen */
+  --bg-deep: #DDE5DA;
+  --ink: #3C4A3E;
+  --ink-soft: #6F7E70;
+  --wood: #D9A86C;
+  --wood-dark: #B07E44;
+  --wood-light: #F2D9B0;
+  --tile: #F8F1E4;
+  --red: #D9574C;
+  --blue: #4A7BC9;
+  --yellow: #E8B83A;
+  --green: #6FA36B;
+  --accent: #B07E44;
+  --font: "Nunito", "Segoe UI", system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+
+/* The hidden attribute must win over the display rules below (.screen, .sheet). */
+[hidden] { display: none !important; }
+
+/* Parent setting: hide the watercolour grain overlays (see paintKit in toy-utils.js). */
+.no-grain .grain { display: none; }
+
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-weight: 700;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+}
+
+.screen {
+  position: fixed;
+  inset: 0;
+  /* Landscape phones have the notch on the left or right, so pad all four sides. */
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) calc(env(safe-area-inset-right, 0px) + 16px)
+           calc(env(safe-area-inset-bottom, 0px) + 12px) calc(env(safe-area-inset-left, 0px) + 16px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Corner button: small and quiet, so it does not compete with the material. */
+.corner-btn {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 12px);
+  left: calc(env(safe-area-inset-left, 0px) + 16px);
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(60, 74, 62, 0.10);
+  color: var(--ink-soft);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+  z-index: 5;
+  touch-action: none;
+}
+.corner-btn svg { width: 22px; height: 22px; fill: currentColor; pointer-events: none; }
+.corner-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.hold-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: conic-gradient(var(--accent) calc(var(--p, 0) * 1turn), transparent 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
+  opacity: 0;
+  transition: opacity .15s;
+}
+.corner-btn.holding .hold-ring { opacity: 1; }
+
+/* Home background: a sleepy sun and a few clouds drifting very slowly. */
+.sky { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.sun { position: absolute; top: calc(env(safe-area-inset-top, 0px) - 34px); right: -30px; width: 130px; height: 130px; }
+.sun-rays { animation: sun-turn 120s linear infinite; transform-origin: 0 0; }
+.leaves { position: absolute; right: -6px; bottom: calc(env(safe-area-inset-bottom, 0px) - 6px); width: 150px; height: 150px; }
+.cloud { position: absolute; left: 0; width: 96px; opacity: .85; animation: drift 140s linear infinite; }
+.cloud svg { display: block; width: 100%; height: auto; }
+.cloud.c1 { top: calc(env(safe-area-inset-top, 0px) + 14px); animation-delay: -30s; }
+.cloud.c2 { top: 46%; width: 70px; opacity: .6; animation-duration: 190s; animation-delay: -120s; }
+.cloud.c3 { bottom: 9%; top: auto; width: 120px; opacity: .7; animation-duration: 170s; animation-delay: -70s; }
+@keyframes drift { from { transform: translateX(-140px); } to { transform: translateX(calc(100vw + 20px)); } }
+@keyframes sun-turn { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .sun-rays, .cloud { animation: none; }
+  .cloud.c1 { transform: translateX(30vw); } .cloud.c2 { transform: translateX(70vw); } .cloud.c3 { transform: translateX(15vw); }
+}
+#home > .corner-btn, #home > .tiles, #home > .parent-note { position: relative; z-index: 1; }
+#home > .corner-btn { position: absolute; }
+
+/* Home: all tiles on one screen, four to a row (the app is made for landscape).
+   The tile size follows whichever runs out first, width or height; the side
+   padding keeps the row clear of the lock button. */
+.tiles {
+  --gap: 14px;
+  flex: 1;
+  min-height: 0;
+  container-type: size;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--gap);
+  padding-inline: 56px;
+  overflow: hidden;
+}
+.tile-row { display: flex; justify-content: center; gap: var(--gap); }
+.tile {
+  --ts: min(calc((100cqh - var(--gap)) / 2), calc((100cqw - 112px - 3 * var(--gap)) / 4));
+  width: var(--ts);
+  height: var(--ts);
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 28px;
+  background: var(--tile);
+  box-shadow: 0 6px 0 var(--bg-deep);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  cursor: pointer;
+  font: inherit;
+  color: var(--ink-soft);
+  transition: transform .12s ease;
+  touch-action: manipulation;
+}
+.tile:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--bg-deep); }
+.tile:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.tile svg { width: 64%; height: 64%; }
+.tile .label { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; font-weight: 800; }
+
+.parent-note {
+  margin: 80px auto 0;
+  max-width: 32ch;
+  text-align: center;
+  color: var(--ink-soft);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* Play: the stage fills the screen; the game draws into it. */
+.stage {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
+.stage svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+}
+.toy-fill {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 28px;
+  overflow: hidden;
+  touch-action: none;
+}
+.toy-fill canvas { display: block; position: absolute; inset: 0; }
+
+/* Drawing toy palette */
+.palette {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(6px);
+}
+.swatch {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: 4px solid transparent;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: 0 2px 0 rgba(60,74,62,.2);
+  transition: transform .12s;
+  flex: none;
+  touch-action: manipulation;
+  display: grid; place-items: center;
+}
+.swatch[aria-pressed="true"] { border-color: #3C4A3E; transform: scale(1.12); }
+.swatch:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.swatch svg { width: 26px; height: 26px; }
+
+.piece { cursor: grab; }
+.piece.dragging { cursor: grabbing; }
+
+/* Parent sheet */
+.sheet {
+  position: fixed;
+  inset: 0;
+  background: rgba(60, 74, 62, 0.35);
+  display: grid;
+  place-items: end center;
+  z-index: 20;
+  padding: 16px;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  box-sizing: border-box;
+}
+.sheet-card {
+  width: min(100%, 440px);
+  background: var(--tile);
+  border-radius: 24px;
+  padding: 22px 22px 18px;
+  box-sizing: border-box;
+  box-shadow: 0 16px 40px rgba(60, 74, 62, 0.25);
+  -webkit-user-select: text;
+  user-select: text;
+  touch-action: auto;
+}
+.sheet-card h2 { margin: 0 0 4px; font-size: 22px; font-weight: 800; text-wrap: balance; }
+.sheet-card h3 {
+  margin: 20px 0 8px;
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.muted { color: var(--ink-soft); font-weight: 500; margin: 0; line-height: 1.5; }
+.tiny { font-size: 12px; margin-top: 14px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  min-width: 48px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 22px;
+  border: 2px solid var(--bg-deep);
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+.chip[aria-pressed="true"] { background: var(--wood); border-color: var(--wood); color: #fff; }
+.chip:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.switch { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.switch .track {
+  width: 48px; height: 28px; border-radius: 14px;
+  background: var(--bg-deep); position: relative; transition: background .15s;
+  flex: none;
+}
+.switch .track::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px;
+  border-radius: 50%; background: #fff; transition: transform .15s;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+.switch input:checked + .track { background: var(--green); }
+.switch input:checked + .track::after { transform: translateX(20px); }
+.switch input:focus-visible + .track { outline: 3px solid var(--accent); outline-offset: 2px; }
+.switch-label { font-weight: 700; }
+
+.primary {
+  margin-top: 22px;
+  width: 100%;
+  height: 48px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--ink);
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+}
+.primary:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tile, .hold-ring, .switch .track, .switch .track::after { transition: none; }
+}
+
+/* Upright phone: cover everything with a calm 'turn me' picture (no text for the child). */
+#rotate { display: none; }
+@media (orientation: portrait) {
+  #rotate {
+    display: grid;
+    place-items: center;
+    position: fixed;
+    inset: 0;
+    z-index: 15;
+    background: var(--bg);
+  }
+  #rotate svg { width: min(56vw, 260px); height: auto; }
+  .rot-phone { animation: rot-turn 3.2s ease-in-out infinite; transform-origin: 0 0; }
+}
+@keyframes rot-turn {
+  0%, 25% { transform: rotate(0deg); }
+  55%, 85% { transform: rotate(-90deg); }
+  100% { transform: rotate(0deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rot-phone { animation: none; transform: rotate(-90deg); }
+}
